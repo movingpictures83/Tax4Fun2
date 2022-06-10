@@ -1,0 +1,3 @@
+fasta	sequences.fasta
+otutable	otu_table.txt
+pathtoreference	/biorg/data/TAX4FUN2
