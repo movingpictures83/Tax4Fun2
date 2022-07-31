@@ -92,7 +92,7 @@ runRefBlast <- function (path_to_otus, path_to_reference_data = "Tax4Fun2_Refere
 }
 
 
-makeFunctionalPrediction <- function (path_to_otu_table, path_to_reference_data = "Tax4Fun2_ReferenceData_v2",
+makeFunctionalPrediction <- function (path_to_otu_table2, path_to_reference_data = "Tax4Fun2_ReferenceData_v2",
     path_to_temp_folder = "Tax4Fun2_prediction", database_mode = "Ref100NR",
     normalize_by_copy_number = T, min_identity_to_reference = 97,
     include_user_data = F, path_to_user_data = "", name_of_user_data = "",
@@ -159,22 +159,22 @@ ref_blast_result = read.delim(file.path(path_to_temp_folder,
             V2 = ref_blast_result_reduced_v2)
     }
     ref_blast_result_reduced
-    otu_table = read.delim(path_to_otu_table)
-    otu_table_reduced = merge(x = ref_blast_result_reduced, y = otu_table,
-        by.x = "V1", by.y = names(otu_table)[1])[, -1]
-    otu_table_reduced_aggregated = aggregate(x = otu_table_reduced[,
-        -1], by = list(otu_table_reduced[, 1]), sum)
-    if ((ncol(otu_table) - 1) == 1) {
-        unknown_fraction1 = as.data.frame(round(1 - sum(ifelse(otu_table_reduced[,
-            -1] > 0, 1, 0))/sum(ifelse(otu_table[, -1] > 0, 1,
+    otu_table2 = read.delim(path_to_otu_table2)
+    otu_table2_reduced = merge(x = ref_blast_result_reduced, y = otu_table2,
+        by.x = "V1", by.y = names(otu_table2)[1])[, -1]
+    otu_table2_reduced_aggregated = aggregate(x = otu_table2_reduced[,
+        -1], by = list(otu_table2_reduced[, 1]), sum)
+    if ((ncol(otu_table2) - 1) == 1) {
+        unknown_fraction1 = as.data.frame(round(1 - sum(ifelse(otu_table2_reduced[,
+            -1] > 0, 1, 0))/sum(ifelse(otu_table2[, -1] > 0, 1,
             0)), digits = 5))
         write(x = "Unknown fraction (amount of otus unused in the prediction) for each sample:",
             file = path_to_log_file, append = T)
         write.table(x = unknown_fraction1, file = path_to_log_file,
             append = T, quote = F, sep = ": ", row.names = T,
             col.names = F)
-        unknown_fraction2 = as.data.frame(round(1 - sum(otu_table_reduced_aggregated[,
-            -1])/sum(otu_table[, -1]), digits = 5))
+        unknown_fraction2 = as.data.frame(round(1 - sum(otu_table2_reduced_aggregated[,
+            -1])/sum(otu_table2[, -1]), digits = 5))
         write(x = "Unknown fraction (amount of sequences unused in the prediction) for each sample:",
             file = path_to_log_file, append = T)
         write.table(x = unknown_fraction2, file = path_to_log_file,
@@ -182,16 +182,16 @@ ref_blast_result = read.delim(file.path(path_to_temp_folder,
             col.names = F)
     }
     else {
-        unknown_fraction1 = as.data.frame(round(1 - colSums(ifelse(otu_table_reduced[,
-            -1] > 0, 1, 0))/colSums(ifelse(otu_table[, -1] >
+        unknown_fraction1 = as.data.frame(round(1 - colSums(ifelse(otu_table2_reduced[,
+            -1] > 0, 1, 0))/colSums(ifelse(otu_table2[, -1] >
             0, 1, 0)), digits = 5))
         write(x = "Unknown fraction (amount of otus unused in the prediction) for each sample:",
             file = path_to_log_file, append = T)
         write.table(x = unknown_fraction1, file = path_to_log_file,
             append = T, quote = F, sep = ": ", row.names = T,
             col.names = F)
-        unknown_fraction2 = as.data.frame(round(1 - colSums(otu_table_reduced_aggregated[,
-            -1])/colSums(otu_table[, -1]), digits = 5))
+        unknown_fraction2 = as.data.frame(round(1 - colSums(otu_table2_reduced_aggregated[,
+            -1])/colSums(otu_table2[, -1]), digits = 5))
         write(x = "Unknown fraction (amount of sequences unused in the prediction) for each sample:",
             file = path_to_log_file, append = T)
         write.table(x = unknown_fraction2, file = path_to_log_file,
@@ -205,7 +205,7 @@ ref_blast_result = read.delim(file.path(path_to_temp_folder,
         n = n + 1
     message("Generating reference profile")
     reference_profile = NULL
-        for (reference_id in otu_table_reduced_aggregated$Group.1) {
+        for (reference_id in otu_table2_reduced_aggregated$Group.1) {
         if (grepl(pattern = "user", x = reference_id)) {
             path_to_profile = file.path(path_to_user_data, name_of_user_data)
             reference_id = gsub("_[0-9]*", "", reference_id)
@@ -225,9 +225,9 @@ ref_blast_result = read.delim(file.path(path_to_temp_folder,
     ko_list = read.delim(file.path(path_to_reference_data, "KEGG/ko.txt"))
     message("Generating functional profile for:")
     functional_prediction = NULL
-    for (sample in 2:ncol(otu_table_reduced_aggregated)) {
-        message(names(otu_table_reduced_aggregated[sample]))
-        functional_prediction_sample = reference_profile * as.numeric(otu_table_reduced_aggregated[,
+    for (sample in 2:ncol(otu_table2_reduced_aggregated)) {
+        message(names(otu_table2_reduced_aggregated[sample]))
+        functional_prediction_sample = reference_profile * as.numeric(otu_table2_reduced_aggregated[,
             sample])
         functional_prediction_sample = round(colMeans(functional_prediction_sample))
         #functional_prediction_sample = (colMeans(functional_prediction_sample)
@@ -237,7 +237,7 @@ ref_blast_result = read.delim(file.path(path_to_temp_folder,
         functional_prediction = cbind(functional_prediction,
             functional_prediction_sample)
     }
-    colnames(functional_prediction) = names(otu_table)[2:ncol(otu_table_reduced_aggregated)]
+    colnames(functional_prediction) = names(otu_table2)[2:ncol(otu_table2_reduced_aggregated)]
     functional_prediction_final = data.frame(KO = ko_list$ko,
         functional_prediction, description = ko_list$description)
     if (ncol(functional_prediction) >= 2)
@@ -272,7 +272,7 @@ ref_blast_result = read.delim(file.path(path_to_temp_folder,
     }
     if (sum(pathway_prediction[, -1]) == 0)
         stop("Conversion to pathway failed!")
-    names(pathway_prediction) = names(otu_table)
+    names(pathway_prediction) = names(otu_table2)
     names(pathway_prediction)[1] = "pathway"
     ptw_desc = read.delim(paste(path_to_reference_data, "/KEGG/ptw.txt",
         sep = ""))
@@ -294,7 +294,7 @@ input <- function(inputfile) {
   parameters <- read.table(inputfile, as.is=T);
   rownames(parameters) <- parameters[,1]
   fasta_file <<- paste(pfix, toString(parameters["fasta",2]), sep="")
-  otu_table <<- paste(pfix, toString(parameters["otutable",2]), sep="")
+  otu_table2 <<- paste(pfix, toString(parameters["otutable",2]), sep="")
   path_to_reference_data <<- toString(parameters["pathtoreference", 2]);
 
 }
@@ -311,7 +311,7 @@ runRefBlast(path_to_otus = fasta_file,
             database_mode = "Ref99NR",
             use_force = T, num_threads = 6)
 print("Making functional predictions...");
-makeFunctionalPrediction(path_to_otu_table = otu_table,
+makeFunctionalPrediction(path_to_otu_table2 = otu_table2,
                          path_to_reference_data = path_to_reference_data,
                          path_to_temp_folder = outputfile,
                          database_mode = "Ref99NR",
