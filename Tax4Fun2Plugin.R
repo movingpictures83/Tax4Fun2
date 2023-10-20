@@ -159,7 +159,7 @@ ref_blast_result = read.delim(file.path(path_to_temp_folder,
             V2 = ref_blast_result_reduced_v2)
     }
     ref_blast_result_reduced
-    otu_table2 = read.delim(path_to_otu_table2)
+    otu_table2 = read.delim(path_to_otu_table2, check.names=FALSE)
     otu_table2_reduced = merge(x = ref_blast_result_reduced, y = otu_table2,
         by.x = "V1", by.y = names(otu_table2)[1])[, -1]
     otu_table2_reduced_aggregated = aggregate(x = otu_table2_reduced[,
@@ -286,12 +286,11 @@ ref_blast_result = read.delim(file.path(path_to_temp_folder,
 
 
 input <- function(inputfile) {
-          print("HHH")
   pfix = prefix()
   if (length(pfix) != 0) {
      prefix <- paste(pfix, "/", sep="")
   }
-  parameters <- read.table(inputfile, as.is=T);
+  parameters <- read.table(inputfile, check.names=FALSE);
   rownames(parameters) <- parameters[,1]
   fasta_file <<- paste(pfix, toString(parameters["fasta",2]), sep="")
   otu_table2 <<- paste(pfix, toString(parameters["otutable",2]), sep="")
